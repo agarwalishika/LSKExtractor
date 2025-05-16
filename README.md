@@ -1,4 +1,4 @@
-# Language Specific Knowledge: Do Models Know Better in \textit{X} than in English?
+# Language Specific Knowledge: Do Models Know Better in X than in English?
 
 ![Overview of LSKExtractor](lsk_figure.png)
 
