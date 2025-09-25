@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import pandas as pd
 import pickle
 import json
@@ -6,8 +7,8 @@ import json
 with open('culture_info_beta_Nov21-001.json', 'r') as f:
     json_data = json.load(f)
 
-countries, topics, subtopics, subsubtopics, questions, answers = [], [], [], [], [], []
-for country in json_data.keys():
+countries, topics, subtopics, subsubtopics, questions, answers, choices = [], [], [], [], [], [], []
+for country in tqdm(json_data.keys()):
     if country == "metadata":
         continue
     for topic in json_data[country].keys():         
@@ -24,9 +25,13 @@ for country in json_data.keys():
                     if "Steinbach, Manitoba" in subsubtopic:
                         hi = 9
                     questions.append(sentence)
-                    answers.append(json_data[country][topic][subtopic][subsubtopic]['norm_violation_rlv'][sentence][0] == "Yes")
+                    if json_data[country][topic][subtopic][subsubtopic]['norm_violation_rlv'][sentence][0] == "Yes":
+                        answers.append("A. True")
+                    else:
+                        answers.append("B. False")
+                    choices.append("A. True\nB. False")
 
-df = pd.DataFrame.from_dict({"country": countries, "topic": topics, "subtopic": subtopics, "subsubtopic": subsubtopics, "input": questions, "output": answers})
+df = pd.DataFrame.from_dict({"country": countries, "topic": topics, "subtopic": subtopics, "subsubtopic": subsubtopics, "input": questions, "output": answers, "choices": choices})
 
-with open('/shared/storage-01/users/ishikaa2/culture_atlas/processed_dataframe.pkl', 'wb+') as f:
+with open('data.pkl', 'wb+') as f:
     pickle.dump(df, f)
