@@ -46,8 +46,6 @@ def semantic_sim(responses, choices_list):
     choice_start_idx = 0
     
     for i, choices in enumerate(choices_list):
-        if i == 26: 
-            hi = 9
         choices_split = choices.split('\n')
         num_choices = len(choices_split)
         
