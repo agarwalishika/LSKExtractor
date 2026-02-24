@@ -113,9 +113,8 @@ def smart_split(text):
     return f"A. {parts[0]}\nB. {parts[1]}\nC. {parts[2]}\nD. {parts[3]}"
 
 from config import *
-files = glob('generations/blend*.pkl')
-files.extend(glob('generations/culture*.pkl'))
-files.extend(glob('generations/social*.pkl'))
+files = glob('generations/*.pkl')
+os.makedirs('generations_json', exist_ok=True)
 for file in files:
     f = file.split('/')[-1]
     output_file = "generations_json/" + f[:f.rfind('.')] + ".json"

@@ -7,6 +7,8 @@ import torch
 
 save_file_name = lambda dataset, model, language: f"generations/{dataset}_{language}_{model.replace('/', '_')}.pkl"
 
+os.makedirs('generations', exist_ok=True)
+
 for model_n in EVALUATION_LLMS:
         language_model = LLM(model=model_n, tensor_parallel_size=torch.cuda.device_count(), gpu_memory_utilization=0.7, trust_remote_code=True)
         sampling_params = SamplingParams(temperature=0, max_tokens=512, top_p=0.9)
