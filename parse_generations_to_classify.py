@@ -1,5 +1,4 @@
 import os
-# os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 from sentence_transformers import SentenceTransformer
 embedding_model = SentenceTransformer('Qwen/Qwen3-Embedding-0.6B')
 
@@ -46,6 +45,8 @@ def semantic_sim(responses, choices_list):
     choice_start_idx = 0
     
     for i, choices in enumerate(choices_list):
+        if i == 26: 
+            hi = 9
         choices_split = choices.split('\n')
         num_choices = len(choices_split)
         
@@ -78,7 +79,7 @@ def extract_number(response, choices):
     temp = [c[0] for c in choices.split('\n')]
     count, final_answer = 0, ''
     for i, t in enumerate(temp):
-        if t.strip() in response.strip():
+        if (t.strip() + " ") in response.strip():
             count += 1
             final_answer = choices.split('\n')[i]
 
@@ -113,11 +114,12 @@ def smart_split(text):
     return f"A. {parts[0]}\nB. {parts[1]}\nC. {parts[2]}\nD. {parts[3]}"
 
 from config import *
-files = glob('generations/*.pkl')
-os.makedirs('generations_json', exist_ok=True)
+files = glob('generations_colm/*/*.pkl')
+os.makedirs('generations_parsed/', exist_ok=True)
+
 for file in files:
     f = file.split('/')[-1]
-    output_file = "generations_json/" + f[:f.rfind('.')] + ".json"
+    output_file = "generations_parsed/" + f[:f.rfind('.')] + ".json"
 
     if os.path.exists(output_file):
         print(f'{output_file} exists, skip.')
@@ -129,6 +131,7 @@ for file in files:
 
     responses = list(data.apply(lambda row: row['vllm_response'].strip(), axis=1))
     choices = list(data['choices'])
+    outputs = list(data['output'])
     final_answers = []
     
     for r, c in tqdm(zip(responses, choices), total=len(responses)):
@@ -140,7 +143,6 @@ for file in files:
         if temp is None and "final_answer" in r:
             temp = extract(r[r.find('final_answer'):].strip().split('\n')[0], c)
         if temp is None:
-            hi = 9
             extract(r[r.find('final_answer'):], c)
             extract(r[r.find('final_answer'):].strip().split('\n')[0], c)
         final_answers.append(temp)
@@ -164,4 +166,5 @@ for file in files:
             counter += 1
     
     data['final_parse_answer'] = final_answers
+    data['is_correct'] = [1.0 if o == f else 0.0 for o, f in zip(outputs, final_answers)]
     data.to_json(output_file)
