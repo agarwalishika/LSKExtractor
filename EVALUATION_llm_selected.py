@@ -68,7 +68,7 @@ def main(model_name, dataset, suffix):
     languages = np.array(get_languages(model_name, dataset))
 
     model_name = model_name.replace('/', '_')
-    data_files = glob(f"generations_json/{dataset}*{model_name}{suffix}.json")
+    data_files = glob(f"generations_parsed/{dataset}*{model_name}{suffix}.json")
     assert len(data_files) == 16
 
     num_acccurate = 0
@@ -76,7 +76,7 @@ def main(model_name, dataset, suffix):
         df = pd.read_json(open(data_file, 'r'))[-NUM_TEST:]
         df_lang = pick_out_lang(data_file)
         df = df[languages == df_lang]
-        num_acccurate += sum(df['final_parse_answer'] == df['output'])
+        num_acccurate += sum(df['is_correct'])
 
     with open('results_LLMSelected.txt', 'a+') as f:
         if "NR" in data_file:
@@ -86,7 +86,8 @@ def main(model_name, dataset, suffix):
     
 for qa_dataset in reversed(EVALUATION_DATASETS):
     for llm in (EVALUATION_LLMS):
-        for suffix in ["", "_NR"]:
+        # for suffix in ["", "_NR"]:
+        for suffix in [""]:
             # try:
                 print(f"Model: {llm}, Dataset: {qa_dataset}")
                 main(llm, qa_dataset, suffix)

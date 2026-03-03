@@ -78,20 +78,24 @@ def get_langs(assigned_clusters, data_files):
         lang_accuracy = 0
         for lang in datasets.keys():
             df = datasets[lang][assigned_clusters == i]
-            acc = sum(df['final_parse_answer'] == df['output']) / (len(df) + 1e-10)
+            acc = sum(df['is_correct']) / (len(df) + 1e-10)
 
+            with open('debug_lsk.txt', 'a+') as f:
+                f.write(f"Cluster {i}, Lang: {lang}, Acc: {acc}, Num Samples: {len(df)}\n")
             if acc > lang_accuracy:
                 lang_accuracy = acc
                 best_lang = lang
+        with open('debug_lsk.txt', 'a+') as f:
+                f.write(f">>>>>>>>>>>>.Cluster {i}, Lang: {best_lang}, Acc: {best_lang}\n")
         cluster_langs.append(best_lang)
     return cluster_langs
 
 def main(model_name, dataset, suffix):
-    data_files = glob(f"generations_json/{dataset}*{model_name}{suffix}.json")
+    data_files = glob(f"generations_parsed/{dataset}*{model_name}{suffix}.json")
 
 
     train_centers, clustered_training_points = get_clusters(dataset)
-    assert len(data_files) == 16
+    assert len(data_files) == 15
 
     train_langs = get_langs(clustered_training_points, data_files)
     with open(f'clustering_metadata/cluster_langs_lsk_{dataset}_{NUM_CLUSTERS}|{model_name}.pkl', 'wb+') as f:
@@ -117,7 +121,7 @@ def main(model_name, dataset, suffix):
     num_accurate = 0
     for i in range(NUM_CLUSTERS):
         df = datasets[train_langs[i]][test_assigned_clusters == i]
-        num_accurate += sum(df['final_parse_answer'] == df['output'])
+        num_accurate += sum(df['is_correct'])
 
     accuracy = num_accurate / NUM_TEST
     with open(f'results_LSKExtractor({NUM_CLUSTERS})_full.txt', 'a+') as f:
@@ -139,10 +143,10 @@ def set_split(temp_dataset):
 for qa_dataset in EVALUATION_DATASETS:
     set_split(qa_dataset)
     for llm in EVALUATION_LLMS:
-        for suffix in ["", "_NR"]:
-            for NUM_CLUSTERS in [0]:
-            # try:
-                print(f"Model: {llm}, Dataset: {qa_dataset}, NUM_TRAIN: {NUM_TRAIN}, NUM_TEST: {NUM_TEST}")
-                main(llm.replace('/', '_'), qa_dataset, suffix)
-            # except:
-            #     continue
+        for suffix in [""]: #, "_NR"]:
+            for NUM_CLUSTERS in [12]:
+                try:
+                    print(f"Model: {llm}, Dataset: {qa_dataset}, NUM_TRAIN: {NUM_TRAIN}, NUM_TEST: {NUM_TEST}")
+                    main(llm.replace('/', '_'), qa_dataset, suffix)
+                except:
+                    continue
